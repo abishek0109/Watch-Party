@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: syncscreen-backend
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install && npm run build && npx prisma db push && npm run prisma:seed
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        value: "file:./dev.db"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: "https://abishek0109.github.io"
+      - key: NODE_ENV
+        value: "production"

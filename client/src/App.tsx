@@ -19,7 +19,7 @@ export const App: React.FC = () => {
   }, [initializeAuth]);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <div className="min-h-screen flex flex-col bg-cinematic-950 text-cinematic-100 font-sans selection:bg-brand-violet selection:text-white">
         <Navbar />
         <main className="flex-1">

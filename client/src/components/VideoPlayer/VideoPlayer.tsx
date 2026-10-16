@@ -40,7 +40,7 @@ export const VideoPlayer: React.FC = () => {
   const [showControls, setShowControls] = useState(true);
   const [isMomentsModalOpen, setIsMomentsModalOpen] = useState(false);
 
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const controlsTimeoutRef = useRef<any>(null);
 
   const {
     canControl,

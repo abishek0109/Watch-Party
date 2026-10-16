@@ -1,6 +1,8 @@
 import { io, Socket } from 'socket.io-client';
 import { SOCKET_EVENTS } from '../../../shared/types';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '/';
+
 class SocketService {
   private socket: Socket | null = null;
   private serverOffsetMs: number = 0;
@@ -12,15 +14,14 @@ class SocketService {
       return this.socket;
     }
 
-    // Connect to same host or configured proxy
-    this.socket = io('/', {
+    this.socket = io(BACKEND_URL, {
       transports: ['websocket', 'polling'],
       autoConnect: true,
       reconnection: true,
-      reconnectionAttempts: 15,
+      reconnectionAttempts: 10,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      timeout: 10000,
+      timeout: 8000,
     });
 
     this.socket.on('connect', () => {
@@ -33,12 +34,14 @@ class SocketService {
       this.stopClockSync();
     });
 
-    this.socket.on(SOCKET_EVENTS.PONG_SYNC, ({ clientSendTime, serverTime }: { clientSendTime: number; serverTime: number }) => {
-      const now = Date.now();
-      this.rttMs = now - clientSendTime;
-      // NTP clock offset formula: serverTime - (clientSendTime + RTT / 2)
-      this.serverOffsetMs = serverTime - (clientSendTime + this.rttMs / 2);
-    });
+    this.socket.on(
+      SOCKET_EVENTS.PONG_SYNC,
+      ({ clientSendTime, serverTime }: { clientSendTime: number; serverTime: number }) => {
+        const now = Date.now();
+        this.rttMs = now - clientSendTime;
+        this.serverOffsetMs = serverTime - (clientSendTime + this.rttMs / 2);
+      }
+    );
 
     return this.socket;
   }
@@ -57,7 +60,6 @@ class SocketService {
 
   private startClockSync() {
     this.stopClockSync();
-    // Do an immediate sync ping, then periodically every 5 seconds
     this.sendPing();
     this.pingInterval = setInterval(() => {
       this.sendPing();
