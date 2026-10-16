@@ -2,6 +2,14 @@
 
 > *"Same screen. Same moment. Anywhere."*
 
+[![Live Website](https://img.shields.io/badge/Live%20Demo-SyncScreen-8B5CF6?style=for-the-badge&logo=google-chrome&logoColor=white)](https://abishek0109.github.io/Watch-Party/)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Watch--Party-06B6D4?style=for-the-badge&logo=github&logoColor=white)](https://github.com/abishek0109/Watch-Party)
+[![Sync Latency](https://img.shields.io/badge/p95%20Latency-5ms-10B981?style=for-the-badge&logo=speedtest&logoColor=white)](https://github.com/abishek0109/Watch-Party)
+
+🌐 **Public Live Deployment**: **[https://abishek0109.github.io/Watch-Party/](https://abishek0109.github.io/Watch-Party/)**
+
+---
+
 SyncScreen is a production-minded web application engineered for real-time synchronized video playback and collaborative social watching across remote participants. Built with an authoritative server clock projection model, millisecond drift correction, and social features including live spoiler-safe chat, floating emoji reactions, collaborative queue upvoting, group polls, and AI mood-based recommendations (**VibeMatch**).
 
 ---
