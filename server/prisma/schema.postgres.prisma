@@ -1,0 +1,235 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String?        @unique
+  username     String         @unique
+  passwordHash String?
+  avatarUrl    String         @default("https://api.dicebear.com/7.x/bottts/svg?seed=default")
+  isGuest      Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  sessions     Session[]
+  watchlist    WatchlistItem[]
+  history      WatchHistory[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model WatchRoom {
+  id                  String             @id @default(uuid())
+  roomCode            String             @unique
+  name                String
+  description         String?
+  isPublic            Boolean            @default(true)
+  isPasswordProtected Boolean            @default(false)
+  passwordHash        String?
+  maxParticipants     Int                @default(20)
+  controlMode         String             @default("collaborative")
+  allowGuestVoting    Boolean            @default(true)
+  hostId              String
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  playbackState       PlaybackState?
+  participants        RoomParticipant[]
+  playlist            PlaylistItem[]
+  chatMessages        ChatMessage[]
+  polls               Poll[]
+  memories            RoomMemory[]
+  cinemaMoments       CinemaMoment[]
+}
+
+model RoomParticipant {
+  id          String    @id @default(uuid())
+  roomId      String
+  room        WatchRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId      String?
+  displayName String
+  avatarUrl   String
+  isHost      Boolean   @default(false)
+  isGuest     Boolean   @default(true)
+  joinedAt    DateTime  @default(now())
+  lastSeenAt  DateTime  @default(now())
+
+  @@index([roomId])
+}
+
+model PlaybackState {
+  id                    String    @id @default(uuid())
+  roomId                String    @unique
+  room                  WatchRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  videoId               String    @default("demo-1")
+  videoUrl              String    @default("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")
+  videoTitle            String    @default("Big Buck Bunny")
+  videoType             String    @default("html5")
+  status                String    @default("paused")
+  currentTime           Float     @default(0.0)
+  duration              Float     @default(596.0)
+  playbackRate          Float     @default(1.0)
+  lastUpdatedServerTime BigInt    @default(0)
+  version               Int       @default(1)
+  hostId                String
+  hostName              String    @default("Host")
+  updatedAt             DateTime  @updatedAt
+}
+
+model Movie {
+  id           String   @id @default(uuid())
+  tmdbId       Int?     @unique
+  title        String
+  overview     String
+  posterPath   String
+  backdropPath String?
+  releaseDate  String
+  voteAverage  Float    @default(0.0)
+  genres       String
+  duration     Int      @default(120)
+  videoUrl     String?
+  videoType    String   @default("html5")
+  createdAt    DateTime @default(now())
+}
+
+model PlaylistItem {
+  id          String    @id @default(uuid())
+  roomId      String
+  room        WatchRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  title       String
+  url         String
+  videoType   String    @default("html5")
+  duration    Float     @default(0)
+  posterUrl   String?
+  overview    String?
+  genres      String?
+  addedById   String
+  addedByName String
+  votesJson   String    @default("[]")
+  addedAt     DateTime  @default(now())
+
+  @@index([roomId])
+}
+
+model ChatMessage {
+  id          String    @id @default(uuid())
+  roomId      String
+  room        WatchRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  senderId    String
+  senderName  String
+  avatarUrl   String
+  message     String
+  isSpoiler   Boolean   @default(false)
+  isSystem    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  @@index([roomId])
+}
+
+model Poll {
+  id              String       @id @default(uuid())
+  roomId          String
+  room            WatchRoom    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  question        String
+  createdById     String
+  createdByName   String
+  durationSeconds Int          @default(60)
+  endsAt          DateTime
+  closed          Boolean      @default(false)
+  winningOptionId String?
+  createdAt       DateTime     @default(now())
+  options         PollOption[]
+
+  @@index([roomId])
+}
+
+model PollOption {
+  id        String     @id @default(uuid())
+  pollId    String
+  poll      Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  text      String
+  movieJson String?
+  votesJson String     @default("[]")
+  votes     PollVote[]
+
+  @@index([pollId])
+}
+
+model PollVote {
+  id        String     @id @default(uuid())
+  pollId    String
+  optionId  String
+  option    PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime   @default(now())
+
+  @@unique([pollId, userId])
+}
+
+model WatchlistItem {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movieId    String
+  movieTitle String
+  posterPath String
+  overview   String?
+  rating     Float?
+  addedAt    DateTime @default(now())
+
+  @@unique([userId, movieId])
+}
+
+model WatchHistory {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roomId          String?
+  roomName        String
+  movieTitle      String
+  posterUrl       String?
+  watchedAt       DateTime @default(now())
+  durationMinutes Int      @default(0)
+
+  @@index([userId])
+}
+
+model RoomMemory {
+  id               String    @id @default(uuid())
+  roomId           String
+  room             WatchRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomName         String
+  movieTitle       String
+  posterUrl        String?
+  participantCount Int       @default(1)
+  notes            String?
+  participantsJson String    @default("[]")
+  memoryDate       DateTime  @default(now())
+  createdAt        DateTime  @default(now())
+
+  @@index([roomId])
+}
+
+model CinemaMoment {
+  id            String    @id @default(uuid())
+  roomId        String
+  room          WatchRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  timestamp     Float
+  label         String
+  note          String?
+  createdByName String
+  createdAt     DateTime  @default(now())
+
+  @@index([roomId])
+}
